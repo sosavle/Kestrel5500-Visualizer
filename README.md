@@ -1,6 +1,6 @@
 # Kestrel5500-Visualizer
 
-Tool for graphing data (.cvs files) obtained from a [Kestrel 5500 portable weather station](https://kestrelinstruments.com/)
+Tool for graphing data (.csv files) obtained from a [Kestrel 5500 portable weather station](https://kestrelinstruments.com/)
 
 The code is designed assuming the Kestrel is measuring in international units.
 
