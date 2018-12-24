@@ -1,0 +1,11 @@
+# Kestrel5500-Visualizer
+
+Tool for graphing data (.cvs files) obtained from a [Kestrel 5500 portable weather station](https://kestrelinstruments.com/)
+
+The code is designed assuming the Kestrel is measuring in international units.
+
+Designed in _Matlab R2018a_ using GUIDE.
+
+*********
+Changelog:
+* V1: Cycling between graphs, average value
