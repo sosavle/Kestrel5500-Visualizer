@@ -93,60 +93,93 @@ global fKestrelData;
 
 state = get(handles.plotArea,'UserData');
 switch state
-
+    
+    case 0
+          plot(t,fKestrelData.WindSpeed);
+          title('Wind Speed');
+          set(handles.meanOut,'String',mean(fKestrelData.WindSpeed));
+          ylabel('m/s');
     case 1
-          plot(t,fKestrelData.BarometricPressure);
-          title('1')
+          plot(t,smooth(fKestrelData.BarometricPressure,15));
+          title('Barometric Pressure')
           set(handles.meanOut,'String',mean(fKestrelData.BarometricPressure));
+          ylabel('mbar');
      case 2
           plot(t,fKestrelData.DensityAltitude);
-          title('2')
+          title('Density Altitude')
+          set(handles.meanOut,'String',mean(fKestrelData.DensityAltitude));
+          ylabel('m');
      case 3
           plot(t,fKestrelData.RelativeHumidity);
-          title('3')
+          title('Relative Humidity')
+          set(handles.meanOut,'String',mean(fKestrelData.RelativeHumidity));
+          ylim([0 100]);
+          ylabel('%');
      case 4
-          plot(t,fKestrelData.StationPressure);
-          title('4')
+          plot(t,smooth(fKestrelData.StationPressure,15));
+          title('Station Pressure')
+          set(handles.meanOut,'String',mean(fKestrelData.StationPressure));
+          ylabel('mbar');
      case 5
           plot(t,fKestrelData.Headwind);
-          title('5')
+          title('Headwind')
+          set(handles.meanOut,'String',mean(fKestrelData.Headwind));
+          ylabel('m/s');
      case 6
           plot(t,fKestrelData.Altitude);
-          title('6')
+          title('Altitude')
+          set(handles.meanOut,'String',mean(fKestrelData.Altitude));
+          ylabel('m');
      case 7
           plot(t,fKestrelData.DewPoint);
-          title('7')
+          title('Dew Point')
+          set(handles.meanOut,'String',mean(fKestrelData.DewPoint));
+          ylabel('ÅãC');
      case 8
           plot(t,fKestrelData.PsychroWetBulbTemperature);
-          title('8')
+          title('Psychro Wet Bulb Temperature')
+          set(handles.meanOut,'String',mean(fKestrelData.PsychroWetBulbTemperature));
+          ylabel('ÅãC');
      case 9
           plot(t,fKestrelData.WindChill);
-          title('9')
+          title('Wind Chill')
+          set(handles.meanOut,'String',mean(fKestrelData.WindChill));
+          ylabel('ÅãC');
     case 10
           plot(t,fKestrelData.Crosswind);
-          title('10')
+          title('Crosswind')
+          set(handles.meanOut,'String',mean(fKestrelData.Crosswind));
+          ylabel('m/s');
     case 11
           plot(t,fKestrelData.HeatStressIndex);
-          title('11')
+          title('Heat Stress Index')
+          set(handles.meanOut,'String',mean(fKestrelData.HeatStressIndex));
+          ylabel('ÅãC');
     case 12
           plot(t,fKestrelData.Temperature);
-          title('12')
+          title('Temperature')
+          set(handles.meanOut,'String',mean(fKestrelData.Temperature));
+          ylabel('ÅãC');
     case 13
           plot(t,fKestrelData.Direction_True);
-          title('13')
+          title('True Direction ')
+          set(handles.meanOut,'String',mean(fKestrelData.Direction_True));
+          ylim([0 360]);
+          yticks([0 90 180 360]);
+          ylabel('Åã');
     case 14
           plot(t,fKestrelData.Direction_Mag);
-          title('14')
-    case 15
-          plot(t,fKestrelData.WindSpeed);
-          title('15')
+          title('Magnetic Direction')
+          set(handles.meanOut,'String',mean(fKestrelData.Direction_Mag));
+          ylim([0 360]);
+          yticks([0 90 180 360]);
+          ylabel('Åã');
 end
 
-if state == 15
-    set(handles.plotArea,'UserData',1);
-else
-    set(handles.plotArea,'UserData',state + 1);
-end
+% Cycle between 15 parameters
+state = mod(state + 1,15);
+set(handles.plotArea,'UserData',state);
+
        
     
     
@@ -204,34 +237,40 @@ function browseButton_Callback(hObject, eventdata, handles)
 % hObject    handle to browseButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+% Browse for a file and display filepath
 global fKestrelData;
 [file, path] = uigetfile('*.csv');
 directory = fullfile(path,file);
 set(handles.directoryDisp, 'string', directory);
-kestrelData = readtable(directory,'HeaderLines',3);
+kestrelData = readtable(directory,'HeaderLines',3); %Delete top of sheet
 writetable(kestrelData,'kestrelData');
-
+% Save the edited file and re-open it
 opts = detectImportOptions('KestrelData.txt');
 kestrelData = readtable('KestrelData.txt',opts);
+
+% Barometic and Station Pressure arrays are stored as cells, so they must
+% be converted to doubles for analysis. Since the values include commas,
+% string is used as an intermediate
 
 kestrelData.BarometricPressure = cell2mat(kestrelData.BarometricPressure);
 kestrelData.StationPressure = cell2mat(kestrelData.StationPressure);
 
+BP = zeros(length(kestrelData.BarometricPressure),1);
 for j = 1:length(kestrelData.BarometricPressure)
     BP(j,:) = str2double(kestrelData.BarometricPressure(j,:));
 end
-    kestrelData.BarometricPressure = BP
+    kestrelData.BarometricPressure = BP;
 
+SP = zeros(length(kestrelData.BarometricPressure),1);
 for j = 1:length(kestrelData.StationPressure)
    SP(j,:) = str2double(kestrelData.StationPressure(j,:));
 end
-    kestrelData.StationPressure = SP
-    
-kestrelData.BarometricPressure
-kestrelData.StationPressure
-    
+    kestrelData.StationPressure = SP;
+        
 fKestrelData = kestrelData;
 
+%formattedDateTime = kestrelData(:,1);
 % barometricPressure = kestrelData(:,2);
 % densityAltitude = kestrelData(:,3);
 % relativeHumidity =  kestrelData(:,4);
@@ -251,8 +290,5 @@ global t;
 t = datetime(kestrelData.FORMATTEDDATE_TIME);
 %t.Format = 'HH:mm';
 
-
-
-
-plot(t,kestrelData.WindSpeed);
-set(handles.plotArea,'UserData',1);
+set(handles.plotArea,'UserData',0);
+cycleRight_Callback(handles.cycleRight, eventdata, handles);
