@@ -22,7 +22,7 @@ function varargout = Kestrel5500_visualizer(varargin)
 
 % Edit the above text to modify the response to help Kestrel5500_visualizer
 
-% Last Modified by GUIDE v2.5 23-Dec-2018 18:10:11
+% Last Modified by GUIDE v2.5 24-Dec-2018 21:02:34
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -60,6 +60,7 @@ guidata(hObject, handles);
 % UIWAIT makes Kestrel5500_visualizer wait for user response (see UIRESUME)
 % uiwait(handles.figure1);
 
+ set(gcf,'toolbar','figure');
 
 % --- Outputs from this function are returned to the command line.
 function varargout = Kestrel5500_visualizer_OutputFcn(hObject, eventdata, handles) 
@@ -76,9 +77,12 @@ function cycleLeft_Callback(hObject, eventdata, handles)
 % hObject    handle to cycleLeft (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
 state = get(handles.plotArea,'UserData');
-set(handles.plotArea,'UserData',state - 2);
+state = mod(state - 2,15);
+if state == 0
+   state = 15;
+end
+set(handles.plotArea,'UserData',state);
 cycleRight_Callback(handles.cycleRight, eventdata, handles);
 
 
@@ -92,93 +96,156 @@ global t;
 global fKestrelData;
 
 state = get(handles.plotArea,'UserData');
-switch state
-    
-    case 0
-          plot(t,fKestrelData.WindSpeed);
-          title('Wind Speed');
-          set(handles.meanOut,'String',mean(fKestrelData.WindSpeed));
-          ylabel('m/s');
-    case 1
-          plot(t,smooth(fKestrelData.BarometricPressure,15));
-          title('Barometric Pressure')
-          set(handles.meanOut,'String',mean(fKestrelData.BarometricPressure));
-          ylabel('mbar');
-     case 2
-          plot(t,fKestrelData.DensityAltitude);
-          title('Density Altitude')
-          set(handles.meanOut,'String',mean(fKestrelData.DensityAltitude));
-          ylabel('m');
-     case 3
-          plot(t,fKestrelData.RelativeHumidity);
-          title('Relative Humidity')
-          set(handles.meanOut,'String',mean(fKestrelData.RelativeHumidity));
-          ylim([0 100]);
-          ylabel('%');
-     case 4
-          plot(t,smooth(fKestrelData.StationPressure,15));
-          title('Station Pressure')
-          set(handles.meanOut,'String',mean(fKestrelData.StationPressure));
-          ylabel('mbar');
-     case 5
-          plot(t,fKestrelData.Headwind);
-          title('Headwind')
-          set(handles.meanOut,'String',mean(fKestrelData.Headwind));
-          ylabel('m/s');
-     case 6
-          plot(t,fKestrelData.Altitude);
-          title('Altitude')
-          set(handles.meanOut,'String',mean(fKestrelData.Altitude));
-          ylabel('m');
-     case 7
-          plot(t,fKestrelData.DewPoint);
-          title('Dew Point')
-          set(handles.meanOut,'String',mean(fKestrelData.DewPoint));
-          ylabel('ÅãC');
-     case 8
-          plot(t,fKestrelData.PsychroWetBulbTemperature);
-          title('Psychro Wet Bulb Temperature')
-          set(handles.meanOut,'String',mean(fKestrelData.PsychroWetBulbTemperature));
-          ylabel('ÅãC');
-     case 9
-          plot(t,fKestrelData.WindChill);
-          title('Wind Chill')
-          set(handles.meanOut,'String',mean(fKestrelData.WindChill));
-          ylabel('ÅãC');
-    case 10
-          plot(t,fKestrelData.Crosswind);
-          title('Crosswind')
-          set(handles.meanOut,'String',mean(fKestrelData.Crosswind));
-          ylabel('m/s');
-    case 11
-          plot(t,fKestrelData.HeatStressIndex);
-          title('Heat Stress Index')
-          set(handles.meanOut,'String',mean(fKestrelData.HeatStressIndex));
-          ylabel('ÅãC');
-    case 12
-          plot(t,fKestrelData.Temperature);
-          title('Temperature')
-          set(handles.meanOut,'String',mean(fKestrelData.Temperature));
-          ylabel('ÅãC');
-    case 13
-          plot(t,fKestrelData.Direction_True);
-          title('True Direction ')
-          set(handles.meanOut,'String',mean(fKestrelData.Direction_True));
-          ylim([0 360]);
-          yticks([0 90 180 360]);
-          ylabel('Åã');
-    case 14
-          plot(t,fKestrelData.Direction_Mag);
-          title('Magnetic Direction')
-          set(handles.meanOut,'String',mean(fKestrelData.Direction_Mag));
-          ylim([0 360]);
-          yticks([0 90 180 360]);
-          ylabel('Åã');
-end
+titulo = {'Wind Speed','Barometric Pressure','Density Altitude','Relative Humidity','Station Pressure','Headwind','Altitude','Dew Point','Magnetic Direction','Wet Bulb','Wind Chill','Crosswind','Heat Stress Index','Temperature','True Direction'};
+units = {'m/s','mb','m','%','mb','mps','m','Celsius','Degrees','Celsius','Celsius','m/s','Celsius','Celsius','Degrees'};
+
+
+plot(t,fKestrelData(:,state));
+title(titulo(state));
+ylabel(units(state));
+average = mean(fKestrelData(:,state));
+set(handles.meanOut,'String',average);
+[maximum,maxI] = max(fKestrelData(:,state));
+[minimum,minI] = min(fKestrelData(:,state));
+set(handles.maxOut,'String',maximum);
+set(handles.minOut,'String',minimum);
+hold on
+plot(t(maxI),fKestrelData(maxI,state),'or','MarkerSize',7);
+plot(t(minI),fKestrelData(minI,state),'ob','MarkerSize',7);
+hold off
 
 % Cycle between 15 parameters
-state = mod(state + 1,15);
+state = state + 1;
+if state == 16
+    state = 1;
+end
 set(handles.plotArea,'UserData',state);
+
+% --------------DEPRECATED CODE------------- %
+%  REASON: Excesive use of switch statements
+%  SOLUTION: Change data from table to array
+
+
+% switch state
+%     
+%     case 0
+%           plot(t,fKestrelData(:,1));
+%           title('Wind Speed');
+%           set(handles.meanOut,'String',mean(fKestrelData.WindSpeed));
+%           units = 'm/s';
+%           ylabel(units);
+%           [maximum,maxI] = max(fKestrelData.WindSpeed);
+%           [minimum,minI] = min(fKestrelData.WindSpeed);
+%           set(handles.maxOut,'String',maximum);
+%           set(handles.minOut,'String',minimum);
+%           hold on
+%           plot(t(maxI),fKestrelData.WindSpeed(maxI),'or','MarkerSize',7);
+%           plot(t(minI),fKestrelData.WindSpeed(minI),'ob','MarkerSize',7);
+%           hold off
+%     case 1
+%           plot(t,smooth(fKestrelData.BarometricPressure,15));
+%           title('Barometric Pressure')
+%           set(handles.meanOut,'String',mean(fKestrelData.BarometricPressure));
+%           ylabel('mbar');
+%           set(handles.maxOut,'String',max(fKestrelData.BarometricPressure));
+%           set(handles.minOut,'String',min(fKestrelData.BarometricPressure));
+%      case 2
+%           plot(t,fKestrelData.DensityAltitude);
+%           title('Density Altitude')
+%           set(handles.meanOut,'String',mean(fKestrelData.DensityAltitude));
+%           ylabel('m');
+%           set(handles.maxOut,'String',max(fKestrelData.DensityAltitude));
+%           set(handles.minOut,'String',min(fKestrelData.DensityAltitude));
+%      case 3
+%           plot(t,fKestrelData.RelativeHumidity);
+%           title('Relative Humidity')
+%           set(handles.meanOut,'String',mean(fKestrelData.RelativeHumidity));
+%           ylim([0 100]);
+%           ylabel('%');
+%           set(handles.maxOut,'String',max(fKestrelData.RelativeHumidity));
+%           set(handles.minOut,'String',min(fKestrelData.RelativeHumidity));
+%      case 4
+%           plot(t,smooth(fKestrelData.StationPressure,15));
+%           title('Station Pressure')
+%           set(handles.meanOut,'String',mean(fKestrelData.StationPressure));
+%           ylabel('mbar');
+%           set(handles.maxOut,'String',max(fKestrelData.StationPressure));
+%           set(handles.minOut,'String',min(fKestrelData.StationPressure));
+%      case 5
+%           plot(t,fKestrelData.Headwind);
+%           title('Headwind')
+%           set(handles.meanOut,'String',mean(fKestrelData.Headwind));
+%           ylabel('m/s');
+%           set(handles.maxOut,'String',max(fKestrelData.Headwind));
+%           set(handles.minOut,'String',min(fKestrelData.Headwind));
+%      case 6
+%           plot(t,fKestrelData.Altitude);
+%           title('Altitude')
+%           set(handles.meanOut,'String',mean(fKestrelData.Altitude));
+%           ylabel('m');
+%           set(handles.maxOut,'String',max(fKestrelData.Altitude));
+%           set(handles.minOut,'String',min(fKestrelData.Altitude));
+%      case 7
+%           plot(t,fKestrelData.DewPoint);
+%           title('Dew Point')
+%           set(handles.meanOut,'String',mean(fKestrelData.DewPoint));
+%           ylabel('ÅãC');
+%           set(handles.maxOut,'String',max(fKestrelData.DewPoint));
+%           set(handles.minOut,'String',min(fKestrelData.DewPoint));
+%      case 8
+%           plot(t,fKestrelData.PsychroWetBulbTemperature);
+%           title('Psychro Wet Bulb Temperature')
+%           set(handles.meanOut,'String',mean(fKestrelData.PsychroWetBulbTemperature));
+%           ylabel('ÅãC');
+%           set(handles.maxOut,'String',max(fKestrelData.PsychroWetBulbTemperature));
+%           set(handles.minOut,'String',min(fKestrelData.PsychroWetBulbTemperature));
+%      case 9
+%           plot(t,fKestrelData.WindChill);
+%           title('Wind Chill')
+%           set(handles.meanOut,'String',mean(fKestrelData.WindChill));
+%           ylabel('ÅãC');
+%           set(handles.maxOut,'String',max(fKestrelData.WindChill));
+%           set(handles.minOut,'String',min(fKestrelData.WindChill));
+%     case 10
+%           plot(t,fKestrelData.Crosswind);
+%           title('Crosswind')
+%           set(handles.meanOut,'String',mean(fKestrelData.Crosswind));
+%           ylabel('m/s');
+%           set(handles.maxOut,'String',max(fKestrelData.Crosswind));
+%           set(handles.minOut,'String',min(fKestrelData.Crosswind));
+%     case 11
+%           plot(t,fKestrelData.HeatStressIndex);
+%           title('Heat Stress Index')
+%           set(handles.meanOut,'String',mean(fKestrelData.HeatStressIndex));
+%           ylabel('ÅãC');
+%           set(handles.maxOut,'String',max(fKestrelData.HeatStressIndex));
+%           set(handles.minOut,'String',min(fKestrelData.HeatStressIndex));
+%     case 12
+%           plot(t,fKestrelData.Temperature);
+%           title('Temperature')
+%           set(handles.meanOut,'String',mean(fKestrelData.Temperature));
+%           ylabel('ÅãC');
+%           set(handles.maxOut,'String',max(fKestrelData.Temperature));
+%           set(handles.minOut,'String',min(fKestrelData.Temperature));
+%     case 13
+%           plot(t,fKestrelData.Direction_True);
+%           title('True Direction ')
+%           set(handles.meanOut,'String',mean(fKestrelData.Direction_True));
+%           ylim([0 360]);
+%           yticks([0 90 180 360]);
+%           ylabel('Åã');
+%           set(handles.maxOut,'String',max(fKestrelData.Direction_True));
+%           set(handles.minOut,'String',min(fKestrelData.Direction_True));
+%     case 14
+%           plot(t,fKestrelData.Direction_Mag);
+%           title('Magnetic Direction')
+%           set(handles.meanOut,'String',mean(fKestrelData.Direction_Mag));
+%           ylim([0 360]);
+%           yticks([0 90 180 360]);
+%           ylabel('Åã');
+%           set(handles.maxOut,'String',max(fKestrelData.Direction_Mag));
+%           set(handles.minOut,'String',min(fKestrelData.Direction_Mag));
+% end
 
        
     
@@ -239,6 +306,7 @@ function browseButton_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Browse for a file and display filepath
+global kestrelData;
 global fKestrelData;
 [file, path] = uigetfile('*.csv');
 directory = fullfile(path,file);
@@ -261,14 +329,15 @@ for j = 1:length(kestrelData.BarometricPressure)
     BP(j,:) = str2double(kestrelData.BarometricPressure(j,:));
 end
     kestrelData.BarometricPressure = BP;
+    clear BP;
 
 SP = zeros(length(kestrelData.BarometricPressure),1);
 for j = 1:length(kestrelData.StationPressure)
    SP(j,:) = str2double(kestrelData.StationPressure(j,:));
 end
     kestrelData.StationPressure = SP;
+    clear SP;
         
-fKestrelData = kestrelData;
 
 %formattedDateTime = kestrelData(:,1);
 % barometricPressure = kestrelData(:,2);
@@ -286,9 +355,67 @@ fKestrelData = kestrelData;
 % temperature =  kestrelData(:,14);
 % trueDirection =  kestrelData(:,15);
 
+
 global t;
 t = datetime(kestrelData.FORMATTEDDATE_TIME);
 %t.Format = 'HH:mm';
+kestrelData.FORMATTEDDATE_TIME = [];
+fKestrelData = table2array(kestrelData);
 
-set(handles.plotArea,'UserData',0);
+set(handles.plotArea,'UserData',1);
 cycleRight_Callback(handles.cycleRight, eventdata, handles);
+
+%% GOALS
+
+% Eliminate global
+% Unify graphs
+% Buttons with images
+% Min/Max
+% Separate figure
+% Hyperlinks
+
+
+
+function minOut_Callback(hObject, eventdata, handles)
+% hObject    handle to minOut (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of minOut as text
+%        str2double(get(hObject,'String')) returns contents of minOut as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function minOut_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to minOut (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function maxOut_Callback(hObject, eventdata, handles)
+% hObject    handle to maxOut (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of maxOut as text
+%        str2double(get(hObject,'String')) returns contents of maxOut as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function maxOut_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to maxOut (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
