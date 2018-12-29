@@ -325,7 +325,7 @@ writetable(kestrelData,'kestrelData');
 opts = detectImportOptions('KestrelData.txt');
 kestrelData = readtable('KestrelData.txt',opts);
 clear opts;
-%delete KestrelData.txt
+delete KestrelData.txt
 
 
 % Barometic and Station Pressure arrays are stored as cells, so they must
