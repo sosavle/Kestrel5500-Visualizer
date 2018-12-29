@@ -77,13 +77,14 @@ function cycleLeft_Callback(hObject, eventdata, handles)
 % hObject    handle to cycleLeft (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-state = get(handles.plotArea,'UserData');
-state = mod(state - 2,15);
-if state == 0
+
+state = get(handles.plotArea,'UserData'); % Get state
+state = mod(state - 2,15); % Cycle back
+if state == 0    % There is no index zero in Matlab
    state = 15;
 end
 set(handles.plotArea,'UserData',state);
-cycleRight_Callback(handles.cycleRight, eventdata, handles);
+cycleRight_Callback(handles.cycleRight, eventdata, handles); % Cycle right callback plots
 
 
 
@@ -94,21 +95,28 @@ function cycleRight_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 global t;
 global fKestrelData;
+%****global unitIn;
 
+% Get State
 state = get(handles.plotArea,'UserData');
+% Title and units Array
 titulo = {'Wind Speed','Barometric Pressure','Density Altitude','Relative Humidity','Station Pressure','Headwind','Altitude','Dew Point','Magnetic Direction','Wet Bulb','Wind Chill','Crosswind','Heat Stress Index','Temperature','True Direction'};
 units = {'m/s','mb','m','%','mb','mps','m','Celsius','Degrees','Celsius','Celsius','m/s','Celsius','Celsius','Degrees'};
 
-
+% Plot
 plot(t,fKestrelData(:,state));
 title(titulo(state));
+% Label
 ylabel(units(state));
+% Average
 average = mean(fKestrelData(:,state));
 set(handles.meanOut,'String',average);
+% Calculate Max and Min
 [maximum,maxI] = max(fKestrelData(:,state));
 [minimum,minI] = min(fKestrelData(:,state));
 set(handles.maxOut,'String',maximum);
 set(handles.minOut,'String',minimum);
+% Plot Max and Min
 hold on
 plot(t(maxI),fKestrelData(maxI,state),'or','MarkerSize',7);
 plot(t(minI),fKestrelData(minI,state),'ob','MarkerSize',7);
@@ -306,8 +314,8 @@ function browseButton_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Browse for a file and display filepath
-global kestrelData;
 global fKestrelData;
+%******global unitIn; -- Unit in is to be used in future versions --
 [file, path] = uigetfile('*.csv');
 directory = fullfile(path,file);
 set(handles.directoryDisp, 'string', directory);
@@ -316,13 +324,16 @@ writetable(kestrelData,'kestrelData');
 % Save the edited file and re-open it
 opts = detectImportOptions('KestrelData.txt');
 kestrelData = readtable('KestrelData.txt',opts);
+clear opts;
+%delete KestrelData.txt
+
 
 % Barometic and Station Pressure arrays are stored as cells, so they must
 % be converted to doubles for analysis. Since the values include commas,
 % string is used as an intermediate
 
+if iscell(kestrelData.BarometricPressure)
 kestrelData.BarometricPressure = cell2mat(kestrelData.BarometricPressure);
-kestrelData.StationPressure = cell2mat(kestrelData.StationPressure);
 
 BP = zeros(length(kestrelData.BarometricPressure),1);
 for j = 1:length(kestrelData.BarometricPressure)
@@ -330,6 +341,11 @@ for j = 1:length(kestrelData.BarometricPressure)
 end
     kestrelData.BarometricPressure = BP;
     clear BP;
+end
+
+if iscell(kestrelData.StationPressure)
+    
+kestrelData.StationPressure = cell2mat(kestrelData.StationPressure);
 
 SP = zeros(length(kestrelData.BarometricPressure),1);
 for j = 1:length(kestrelData.StationPressure)
@@ -337,7 +353,9 @@ for j = 1:length(kestrelData.StationPressure)
 end
     kestrelData.StationPressure = SP;
     clear SP;
+end
         
+%******unitIn = table2array(kestrelData(1,(2:end)));
 
 %formattedDateTime = kestrelData(:,1);
 % barometricPressure = kestrelData(:,2);
@@ -358,22 +376,20 @@ end
 
 global t;
 t = datetime(kestrelData.FORMATTEDDATE_TIME);
-%t.Format = 'HH:mm';
 kestrelData.FORMATTEDDATE_TIME = [];
 fKestrelData = table2array(kestrelData);
+clear kestrelData;
 
 set(handles.plotArea,'UserData',1);
 cycleRight_Callback(handles.cycleRight, eventdata, handles);
 
 %% GOALS
 
-% Eliminate global
 % Unify graphs
+% Detect Units
 % Buttons with images
-% Min/Max
 % Separate figure
 % Hyperlinks
-
 
 
 function minOut_Callback(hObject, eventdata, handles)
