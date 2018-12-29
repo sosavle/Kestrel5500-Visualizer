@@ -6,6 +6,10 @@ The code is designed assuming the Kestrel is measuring in international units.
 
 Designed in _Matlab R2018a_ using GUIDE.
 
+
+![Screenshot](https://github.com/sosavle/Kestrel5500-Visualizer/blob/master/SnipMatlab.PNG)
+
+
 *********
 Changelog:
 * V1: Cycling between graphs, average value
