@@ -365,9 +365,6 @@ end
 end
 
 
-
-
-
 %formattedDateTime = kestrelData(:,1);
 % barometricPressure = kestrelData(:,2);
 % densityAltitude = kestrelData(:,3);
@@ -388,20 +385,43 @@ end
 global t;
 timeStr = kestrelData.FORMATTEDDATE_TIME;
 t = datetime(timeStr);
+% date & time require special treatment, so they are isolated
 kestrelData.FORMATTEDDATE_TIME = [];
-fKestrelData = table2array(kestrelData);
-%set(handles.guiTable,'Data',fKestrelData);
-%set(handles.guiTable,'RowName',timeStr);
+% array form avoids redundant switch statements
+fKestrelData = table2array(kestrelData); 
 
-for j=1:length(timeStr)
-    tempDateTime = strsplit(timeStr(j,:));
-    dateTime(j,1) = tempDateTime(1,1);
-    dateTime(j,2) = tempDateTime(1,2);
+nRows = length(timeStr); % number of rows (amount of data points collected)
+
+% initialize outside of loop for faster performance
+tableDate(nRows,1) = ""; 
+tableTime(nRows,2) = "";
+
+declutterDates = missing;  % used to avoid redundant date values flooding table
+
+for j=1:nRows
+    tempDateTime = strsplit(timeStr(j,:)); % separate date and time
+    tableDate(j) = tempDateTime(1,1); % set date
+    tableTime(j) = tempDateTime(1,2); % set time
+    
+    % evaluate redundancy of date
+    if  tableDate(j) ~= declutterDates 
+        declutterDates = tableDate(j,1);
+    else
+        tableDate(j,1) = missing;
+    end
+        
 end
 
-dateTime = convertStringsToChars(dateTime);
-fTable = cell(cat(2,dateTime,table2cell(kestrelData)));
+% strsplit only works with strings. However, conversion into char is
+% necessary because cells can only contain chars
+tableDate = convertStringsToChars(tableDate);
+tableTime = convertStringsToChars(tableTime);
+% concatenate date and time with the remaining data, convert into cells
+% (because tables use cells)
+fTable = cell(cat(2,tableDate,table2cell(kestrelData)));
 set(handles.guiTable,'Data',fTable);
+
+set(handles.guiTable,'RowName',tableTime);
 
 clear kestrelData;
 
