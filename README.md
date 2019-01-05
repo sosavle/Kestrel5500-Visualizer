@@ -15,3 +15,4 @@ Changelog:
 * V1: Cycling between graphs, average value
 * V1.2: Added toolbar, minimum and maximum value display. Simplified code. Added License. Added executable file.
 * V1.3: Bug fix: Pressure values under 1000 will no longer crash the app
+* V1.4: Table viewer added
