@@ -22,7 +22,7 @@ function varargout = Kestrel5500_visualizer(varargin)
 
 % Edit the above text to modify the response to help Kestrel5500_visualizer
 
-% Last Modified by GUIDE v2.5 24-Dec-2018 21:02:34
+% Last Modified by GUIDE v2.5 03-Jan-2019 00:24:31
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -95,13 +95,18 @@ function cycleRight_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 global t;
 global fKestrelData;
-%****global unitIn;
+global unitIn;
 
 % Get State
 state = get(handles.plotArea,'UserData');
 % Title and units Array
 titulo = {'Wind Speed','Barometric Pressure','Density Altitude','Relative Humidity','Station Pressure','Headwind','Altitude','Dew Point','Magnetic Direction','Wet Bulb','Wind Chill','Crosswind','Heat Stress Index','Temperature','True Direction'};
+
+%if unitIn(2) =
+
 units = {'m/s','mb','m','%','mb','mps','m','Celsius','Degrees','Celsius','Celsius','m/s','Celsius','Celsius','Degrees'};
+%units = table2array(unitIn);
+%units = units(state+1);
 
 % Plot
 plot(t,fKestrelData(:,state));
@@ -315,17 +320,21 @@ function browseButton_Callback(hObject, eventdata, handles)
 
 % Browse for a file and display filepath
 global fKestrelData;
-%******global unitIn; -- Unit in is to be used in future versions --
+global unitIn;
 [file, path] = uigetfile('*.csv');
 directory = fullfile(path,file);
 set(handles.directoryDisp, 'string', directory);
-kestrelData = readtable(directory,'HeaderLines',3); %Delete top of sheet
+kestrelData = readtable(directory,'HeaderLines',3); % Delete top of sheet
+
+
+unitIn = kestrelData(1,:); % Extract unit cells
 writetable(kestrelData,'kestrelData');
-% Save the edited file and re-open it
+% Save the edited file and re-open it (necessary to eliminate ' ' enclosing values)
 opts = detectImportOptions('KestrelData.txt');
+opts.VariableTypes(1) = {'string'};
 kestrelData = readtable('KestrelData.txt',opts);
 clear opts;
-delete KestrelData.txt
+% delete KestrelData.txt
 
 
 % Barometic and Station Pressure arrays are stored as cells, so they must
@@ -354,8 +363,10 @@ end
     kestrelData.StationPressure = SP;
     clear SP;
 end
-        
-%******unitIn = table2array(kestrelData(1,(2:end)));
+
+
+
+
 
 %formattedDateTime = kestrelData(:,1);
 % barometricPressure = kestrelData(:,2);
@@ -375,9 +386,23 @@ end
 
 
 global t;
-t = datetime(kestrelData.FORMATTEDDATE_TIME);
+timeStr = kestrelData.FORMATTEDDATE_TIME;
+t = datetime(timeStr);
 kestrelData.FORMATTEDDATE_TIME = [];
 fKestrelData = table2array(kestrelData);
+%set(handles.guiTable,'Data',fKestrelData);
+%set(handles.guiTable,'RowName',timeStr);
+
+for j=1:length(timeStr)
+    tempDateTime = strsplit(timeStr(j,:));
+    dateTime(j,1) = tempDateTime(1,1);
+    dateTime(j,2) = tempDateTime(1,2);
+end
+
+dateTime = convertStringsToChars(dateTime);
+fTable = cell(cat(2,dateTime,table2cell(kestrelData)));
+set(handles.guiTable,'Data',fTable);
+
 clear kestrelData;
 
 set(handles.plotArea,'UserData',1);
@@ -390,6 +415,10 @@ cycleRight_Callback(handles.cycleRight, eventdata, handles);
 % Buttons with images
 % Separate figure
 % Hyperlinks
+% Highlight Table
+% Modify graph via Table
+% Modify smoothness via Slider
+% Two files on same graph
 
 
 function minOut_Callback(hObject, eventdata, handles)
@@ -435,3 +464,36 @@ function maxOut_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+
+% --- Executes on button press in gitHub.
+function gitHub_Callback(hObject, eventdata, handles)
+% hObject    handle to gitHub (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on button press in graphButton.
+function graphButton_Callback(hObject, eventdata, handles)
+% hObject    handle to graphButton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of graphButton
+
+set(handles.graphButton,'Value',1);
+set(handles.tableButton,'Value',0);
+set(handles.guiTable,'Visible','off');
+
+
+% --- Executes on button press in tableButton.
+function tableButton_Callback(hObject, eventdata, handles)
+% hObject    handle to tableButton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of tableButton
+
+set(handles.tableButton,'Value',1);
+set(handles.graphButton,'Value',0);
+set(handles.guiTable,'Visible','on');
