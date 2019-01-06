@@ -22,7 +22,7 @@ function varargout = Kestrel5500_visualizer(varargin)
 
 % Edit the above text to modify the response to help Kestrel5500_visualizer
 
-% Last Modified by GUIDE v2.5 04-Jan-2019 22:50:32
+% Last Modified by GUIDE v2.5 05-Jan-2019 22:40:43
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -58,9 +58,10 @@ handles.output = hObject;
 % Update handles structure
 guidata(hObject, handles);
 % UIWAIT makes Kestrel5500_visualizer wait for user response (see UIRESUME)
-% uiwait(handles.figure1);
+% uiwait(handles.guiMain);
 
- set(gcf,'toolbar','figure');
+% set(gcf,'toolbar','figure');
+ 
 
 % --- Outputs from this function are returned to the command line.
 function varargout = Kestrel5500_visualizer_OutputFcn(hObject, eventdata, handles) 
@@ -95,7 +96,6 @@ function cycleRight_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 global t;
 global fKestrelData;
-global unitIn;
 
 % Get State
 state = get(handles.plotArea,'UserData');
@@ -292,7 +292,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
-
 function directoryDisp_Callback(hObject, eventdata, handles)
 % hObject    handle to directoryDisp (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -314,6 +313,8 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
+function kestrelPlot(handles)
+
 
 % --- Executes on button press in browseButton.
 function browseButton_Callback(hObject, eventdata, handles)
@@ -323,14 +324,15 @@ function browseButton_Callback(hObject, eventdata, handles)
 
 % Browse for a file and display filepath
 global fKestrelData;
-global unitIn;
+% global unitIn;
+global fTable;
 [file, path] = uigetfile('*.csv');
 directory = fullfile(path,file);
 set(handles.directoryDisp, 'string', directory);
 kestrelData = readtable(directory,'HeaderLines',3); % Delete top of sheet
 
 
-unitIn = kestrelData(1,:); % Extract unit cells
+% unitIn = kestrelData(1,:); % Extract unit cells
 writetable(kestrelData,'kestrelData');
 % Save the edited file and re-open it (necessary to eliminate ' ' enclosing values)
 opts = detectImportOptions('KestrelData.txt');
@@ -387,11 +389,16 @@ end
 
 global t;
 timeStr = kestrelData.FORMATTEDDATE_TIME;
+
 t = datetime(timeStr);
+setappdata(gcf,'t',t)
+
 % date & time require special treatment, so they are isolated
 kestrelData.FORMATTEDDATE_TIME = [];
 % array form avoids redundant switch statements
+
 fKestrelData = table2array(kestrelData); 
+setappdata(gcf,'fKestrelData',fKestrelData)
 
 nRows = length(timeStr); % number of rows (amount of data points collected)
 
@@ -421,7 +428,10 @@ tableDate = convertStringsToChars(tableDate);
 tableTime = convertStringsToChars(tableTime);
 % concatenate date and time with the remaining data, convert into cells
 % (because tables use cells)
+
 fTable = cell(cat(2,tableDate,table2cell(kestrelData)));
+setappdata(gcf,'fTable',fTable)
+
 set(handles.guiTable,'Data',fTable);
 
 set(handles.guiTable,'RowName',tableTime);
@@ -430,6 +440,7 @@ clear kestrelData;
 
 set(handles.plotArea,'UserData',1);
 cycleRight_Callback(handles.cycleRight, eventdata, handles);
+
 
 %% GOALS
 
@@ -442,6 +453,8 @@ cycleRight_Callback(handles.cycleRight, eventdata, handles);
 % Modify graph via Table
 % Modify smoothness via Slider
 % Two files on same graph
+
+% ELIMINATE GLOBAL
 
 
 function minOut_Callback(hObject, eventdata, handles)
@@ -474,6 +487,7 @@ function maxOut_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of maxOut as text
 %        str2double(get(hObject,'String')) returns contents of maxOut as a double
+
 
 
 % --- Executes during object creation, after setting all properties.
@@ -510,6 +524,7 @@ set(handles.guiTable,'Visible','off');
 set(handles.Smoothing,'Visible','on');
 set(handles.smoothSlider,'Visible','on');
 
+getappdata(gcf,'toti')
 
 % --- Executes on button press in tableButton.
 function tableButton_Callback(hObject, eventdata, handles)
@@ -524,6 +539,8 @@ set(handles.graphButton,'Value',0);
 set(handles.guiTable,'Visible','on');
 set(handles.Smoothing,'Visible','off');
 set(handles.smoothSlider,'Visible','off');
+
+setappdata(gcf,'toti','totona');
 
 
 % --- Executes on slider movement.
@@ -559,3 +576,33 @@ function smoothSlider_CreateFcn(hObject, eventdata, handles)
 if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor',[.9 .9 .9]);
 end
+
+
+% --------------------------------------------------------------------
+function uipushtool5_ClickedCallback(hObject, eventdata, handles)
+% hObject    handle to uipushtool5 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+browseButton_Callback(handles.browseButton, eventdata, handles)
+
+
+% --------------------------------------------------------------------
+function uipushtool1_ClickedCallback(hObject, eventdata, handles)
+% hObject    handle to uipushtool1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+global fTable;
+
+saveStyle = chooseSaveType;
+
+switch saveStyle
+    case 'Graph'
+    case 'Table'
+        fTable = cell2table(fTable)
+        writetable(fTable,'toti.xls');
+end
+
+[filename,path] = uiputfile('*.fig;*.png;*.jpg','Save as Image','Kestrel.png');
+saveas(gcf,strcat(path,filename))
+
+%%%%%%%%%% SEPARATE PLOT AND SHIFT FUNCTIONS %%%%%%%%%%%%%%
