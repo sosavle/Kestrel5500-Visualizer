@@ -22,7 +22,7 @@ function varargout = Kestrel5500_visualizer(varargin)
 
 % Edit the above text to modify the response to help Kestrel5500_visualizer
 
-% Last Modified by GUIDE v2.5 03-Jan-2019 00:24:31
+% Last Modified by GUIDE v2.5 04-Jan-2019 22:50:32
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -109,22 +109,25 @@ units = {'m/s','mb','m','%','mb','mps','m','Celsius','Degrees','Celsius','Celsiu
 %units = units(state+1);
 
 % Plot
-plot(t,fKestrelData(:,state));
+smoothness = get(handles.smoothSlider,'Value')*20 + 1;
+smoothPlotData = smooth(fKestrelData(:,state),smoothness);
+plot(t,smoothPlotData);
 title(titulo(state));
 % Label
 ylabel(units(state));
 % Average
-average = mean(fKestrelData(:,state));
+%average = mean(smoothPlotData(:,state));
+average = mean(smoothPlotData);
 set(handles.meanOut,'String',average);
 % Calculate Max and Min
-[maximum,maxI] = max(fKestrelData(:,state));
-[minimum,minI] = min(fKestrelData(:,state));
+[maximum,maxI] = max(smoothPlotData);
+[minimum,minI] = min(smoothPlotData);
 set(handles.maxOut,'String',maximum);
 set(handles.minOut,'String',minimum);
 % Plot Max and Min
 hold on
-plot(t(maxI),fKestrelData(maxI,state),'or','MarkerSize',7);
-plot(t(minI),fKestrelData(minI,state),'ob','MarkerSize',7);
+plot(t(maxI),smoothPlotData(maxI),'or','MarkerSize',7);
+plot(t(minI),smoothPlotData(minI),'ob','MarkerSize',7);
 hold off
 
 % Cycle between 15 parameters
@@ -504,6 +507,8 @@ function graphButton_Callback(hObject, eventdata, handles)
 set(handles.graphButton,'Value',1);
 set(handles.tableButton,'Value',0);
 set(handles.guiTable,'Visible','off');
+set(handles.Smoothing,'Visible','on');
+set(handles.smoothSlider,'Visible','on');
 
 
 % --- Executes on button press in tableButton.
@@ -517,3 +522,40 @@ function tableButton_Callback(hObject, eventdata, handles)
 set(handles.tableButton,'Value',1);
 set(handles.graphButton,'Value',0);
 set(handles.guiTable,'Visible','on');
+set(handles.Smoothing,'Visible','off');
+set(handles.smoothSlider,'Visible','off');
+
+
+% --- Executes on slider movement.
+function smoothSlider_Callback(hObject, eventdata, handles)
+% hObject    handle to smoothSlider (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'Value') returns position of slider
+%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
+position = get(handles.smoothSlider,'Value')*100;
+position = round(position);
+set(handles.smoothSlider,'Value',position/100);
+
+state = get(handles.plotArea,'UserData'); % Get state
+state = mod(state - 1,15); % Cycle back
+if state == 0    % There is no index zero in Matlab
+   state = 15;
+end
+
+set(handles.plotArea,'UserData',state);
+cycleRight_Callback(handles.cycleRight, eventdata, handles);
+
+
+
+% --- Executes during object creation, after setting all properties.
+function smoothSlider_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to smoothSlider (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: slider controls usually have a light gray background.
+if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor',[.9 .9 .9]);
+end
