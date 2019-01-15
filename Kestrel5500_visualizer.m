@@ -232,8 +232,8 @@ function maxOut_Callback(hObject, eventdata, handles)
 % graphButton
 % tableButton
 % smoothSlider
-% uipushtool5 (open)
-% uipushtool1 (save)
+% openButton
+% saveButton
 
 
 %% BROWSE --------------------------------------------------------
@@ -369,6 +369,7 @@ setappdata(handles.guiMain,'state',1);
 
 kestrelPlot(handles,handles.guiMain)
 
+
 %% PLOT ----------------------------------------------------------
 function kestrelPlot(handles,fig)
 mainFig = handles.guiMain;
@@ -387,11 +388,6 @@ smoothness = get(handles.smoothSlider,'Value')*length(t) + 1;
 smoothness = round(smoothness);
 smoothPlotData = smooth(fKestrelData(:,state),smoothness);
 
-if fig == 'onePlot'
-    area = figure(999);
-    %area.Visible = 'off';
-end
-    
     
 plot(t,smoothPlotData);
 
@@ -527,16 +523,16 @@ kestrelPlot(handles,handles.guiMain);
 
 %% OPEN ---------------------------------------------------------
 % --- Called by toolbar icon -------------------------------------------
-function uipushtool5_ClickedCallback(hObject, eventdata, handles)
-% hObject    handle to uipushtool5 (see GCBO)
+function openButton_ClickedCallback(hObject, eventdata, handles)
+% hObject    handle to openButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 browseButton_Callback(handles.browseButton, eventdata, handles);
 
 %% SAVE ---------------------------------------------------------
 % --- Called by toolbar icon -------------------------------------------
-function uipushtool1_ClickedCallback(hObject, eventdata, handles)
-% hObject    handle to uipushtool1 (see GCBO)
+function saveButton_ClickedCallback(hObject, eventdata, handles)
+% hObject    handle to saveButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
@@ -563,10 +559,29 @@ end
 % Detect Units
 % Buttons with images
 % DONE: Separate figure
-% Hyperlinks
+% DONE: Hyperlinks
 % Highlight Table
 % Modify graph via Table
 % DONE: Modify smoothness via Slider
 % Two files on same graph
 % DONE: Smoothness range based on amount of data
 % DONE: Eliminate global
+
+
+% --------------------------------------------------------------------
+function githubButton_ClickedCallback(hObject, eventdata, handles)
+% hObject    handle to githubButton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+web('https://github.com/sosavle/Kestrel5501-Visualizer','-browser');
+
+
+% --------------------------------------------------------------------
+function windRosebutton_ClickedCallback(hObject, eventdata, handles)
+% hObject    handle to windRosebutton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+fKestrelData = getappdata(handles.guiMain,'fKestrelData');
+h = WindRose(fKestrelData(:,15), fKestrelData(:,1));
+h.Color = [0.94 0.94 0.94];
+h.name = 'Wind Rose';
