@@ -24,3 +24,4 @@ If you already have Matlab installed on your computer, you may also download the
 * V1.2: Added toolbar, minimum and maximum value display. Simplified code. Added License. Added executable file.
 * V1.3: Bug fix: Pressure values under 1000 will no longer crash the app
 * V1.4: Table viewer added
+* V1.5: Toolbar functionalities, resizable window, context menu copy option added, removal of global variables, comments and embellishments
