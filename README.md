@@ -9,9 +9,17 @@ Designed in _Matlab R2018a_ using GUIDE.
 
 ![Screenshot](https://github.com/sosavle/Kestrel5500-Visualizer/blob/master/SnipMatlab.PNG)
 
+*********
+# How to install
+
+You only need the files in the Kestrel5500-Visualizer folder!
+Download the folder and then install the app by opening the "For Redistribution" sub-folder and clicking on the install wizard
+
+If you already have Matlab installed on your computer, you may also download the .m and .fig files, and execute the .m file to boot up the GUI
 
 *********
-Changelog:
+# Changelog
+
 * V1: Cycling between graphs, average value
 * V1.2: Added toolbar, minimum and maximum value display. Simplified code. Added License. Added executable file.
 * V1.3: Bug fix: Pressure values under 1000 will no longer crash the app
