@@ -103,8 +103,8 @@ guidata(hObject, handles);
 
 % set(gcf,'toolbar','figure');
  
-f = figure(999);
-f.Visible = 'off';
+% f = figure(999);
+% f.Visible = 'off';
 
 % --- Outputs from this function are returned to the command line.
 function varargout = Kestrel5500_visualizer_OutputFcn(hObject, eventdata, handles) 
@@ -554,15 +554,15 @@ switch saveStyle
          kestrelPlot(handles,fig)
 end
  
-%saveas(gcf,strcat(path,filename)) <-- Replaced saveas by print to avoid
-%creation of additional figures thanks to the '-noui' argument.
+% saveas(gcf,strcat(path,filename)) <-- Replaced saveas by print to avoid
+% creation of additional figures thanks to the '-noui' argument.
 
 %% GOALS
 
 % Unify graphs
 % Detect Units
 % Buttons with images
-% Separate figure
+% DONE: Separate figure
 % Hyperlinks
 % Highlight Table
 % Modify graph via Table
