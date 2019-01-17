@@ -1,4 +1,4 @@
-# Kestrel5500-Visualizer
+# :sunny: Kestrel5500-Visualizer
 
 Tool for graphing data (.csv files) obtained from a [Kestrel 5500 portable weather station](https://kestrelinstruments.com/)
 
