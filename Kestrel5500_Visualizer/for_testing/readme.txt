@@ -1,4 +1,4 @@
-Kestrel5500_Visualizer Executable
+Kestrel5500_visualizer Executable
 
 1. Prerequisites for Deployment 
 
@@ -24,7 +24,7 @@ in the MathWorks Documentation Center.
 
 Files to Package for Standalone 
 ================================
--Kestrel5500_Visualizer.exe
+-Kestrel5500_visualizer.exe
 -MCRInstaller.exe 
     Note: if end users are unable to download the MATLAB Runtime using the
     instructions in the previous section, include it when building your 
