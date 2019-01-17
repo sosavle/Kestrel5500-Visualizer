@@ -7,6 +7,15 @@
 % 当プログラムはご使用になって誠に感謝いたします。
 %                                                 ～ Luis Sosa
 
+%% ACKNOWLEDGEMENTS
+
+% Thanks to Daniel Pereira who developed the WindRose.m file used in this program
+% daniel.pereira.valades@gmail.com
+% https://www.mathworks.com/matlabcentral/fileexchange/47248-wind-rose
+
+% Thanks to Mathworks for developing Matlab, much of its documentation, and
+% the function which chooseSaveType was based off of.
+
 % ------------------------------------------------------------------- %
 %% ------ Variables stored in Kestrel 5500 .csv exports ------ %%
 % ------------------------------------------------------------------- %
@@ -265,39 +274,43 @@ clear opts;
 % be converted to doubles for analysis. Since the values include commas,
 % string is used as an intermediate
 
-if iscell(kestrelData.BarometricPressure)
-kestrelData.BarometricPressure = cell2mat(kestrelData.BarometricPressure);
-
-BP = zeros(length(kestrelData.BarometricPressure),1);
-for j = 1:length(kestrelData.BarometricPressure)
-    BP(j,:) = str2double(kestrelData.BarometricPressure(j,:));
-end
+% Type will be cell if the values include a comma (i.e. are over 1000)
+% These cells must be converted to doubles via a string intermediary
+if iscell(kestrelData.BarometricPressure) 
+    
+    kestrelData.BarometricPressure = cell2mat(kestrelData.BarometricPressure);
+    BP = zeros(length(kestrelData.BarometricPressure),1);
+    
+    for j = 1:length(kestrelData.BarometricPressure)
+        BP(j,:) = str2double(kestrelData.BarometricPressure(j,:));
+    end
     kestrelData.BarometricPressure = BP;
     clear BP;
 end
 
+% Same logic as before
 if iscell(kestrelData.StationPressure)
     
-kestrelData.StationPressure = cell2mat(kestrelData.StationPressure);
-
-SP = zeros(length(kestrelData.BarometricPressure),1);
-for j = 1:length(kestrelData.StationPressure)
-   SP(j,:) = str2double(kestrelData.StationPressure(j,:));
-end
+    kestrelData.StationPressure = cell2mat(kestrelData.StationPressure);
+    SP = zeros(length(kestrelData.BarometricPressure),1);
+    
+    for j = 1:length(kestrelData.StationPressure)
+        SP(j,:) = str2double(kestrelData.StationPressure(j,:));
+    end
     kestrelData.StationPressure = SP;
     clear SP;
 end
 
+% Getting time as a string
 timeStr = kestrelData.FORMATTEDDATE_TIME;
-
+% Making use of Matlab's datetime type
 t = datetime(timeStr);
 setappdata(gcf,'t',t);
-
 % date & time require special treatment, so they are isolated
 kestrelData.FORMATTEDDATE_TIME = [];
 % array form avoids redundant switch statements
-
 fKestrelData = table2array(kestrelData); 
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % % Rearrange
 % tempKestrelData = fKestrelData;
@@ -353,20 +366,18 @@ end
 % necessary because cells can only contain chars
 tableDate = convertStringsToChars(tableDate);
 tableTime = convertStringsToChars(tableTime);
+
 % concatenate date and time with the remaining data, convert into cells
 % (because tables use cells)
-
 fTable = cat(2,tableDate,table2cell(kestrelData));
 setappdata(gcf,'fTable',cell2table(fTable));
-
 set(handles.guiTable,'Data',fTable);
-
 set(handles.guiTable,'RowName',tableTime);
 
 clear kestrelData;
 
+% Proceed to plot state 1 (the first graph)
 setappdata(handles.guiMain,'state',1);
-
 kestrelPlot(handles,handles.guiMain)
 
 
@@ -374,21 +385,23 @@ kestrelPlot(handles,handles.guiMain)
 function kestrelPlot(handles,fig)
 mainFig = handles.guiMain;
 
+% Get axes data
 t = getappdata(mainFig,'t');
 fKestrelData = getappdata(mainFig,'fKestrelData');
 
 % Get State
 state = getappdata(mainFig,'state');
+
 % Title and units Array
 titulo = {'Wind Speed','Barometric Pressure','Density Altitude','Relative Humidity','Station Pressure','Headwind','Altitude','Dew Point','Magnetic Direction','Wet Bulb','Wind Chill','Crosswind','Heat Stress Index','Temperature','True Direction'};
 units = {'m/s','mb','m','%','mb','mps','m','Celsius','Degrees','Celsius','Celsius','m/s','Celsius','Celsius','Degrees'};
 
-% Plot
+% Determine Smoothing Factor
 smoothness = get(handles.smoothSlider,'Value')*length(t) + 1;
 smoothness = round(smoothness);
 smoothPlotData = smooth(fKestrelData(:,state),smoothness);
 
-    
+% Plot the data!    
 plot(t,smoothPlotData);
 
 %------ Context Menu
@@ -402,11 +415,11 @@ if gcf == handles.guiMain
 end
 %------
 
+% Title
 title(titulo(state));
 % Label
 ylabel(units(state));
 % Average
-%average = mean(smoothPlotData(:,state));
 average = mean(smoothPlotData);
 set(handles.meanOut,'String',average);
 % Calculate Max and Min
@@ -573,7 +586,7 @@ function githubButton_ClickedCallback(hObject, eventdata, handles)
 % hObject    handle to githubButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-web('https://github.com/sosavle/Kestrel5501-Visualizer','-browser');
+web('https://github.com/sosavle/Kestrel5500-Visualizer','-browser');
 
 
 % --------------------------------------------------------------------
@@ -581,7 +594,15 @@ function windRosebutton_ClickedCallback(hObject, eventdata, handles)
 % hObject    handle to windRosebutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%         This function was pubicly available online                   %%%
+%%%   Credits to Daniel Pereira - daniel.pereira.valades@gmail.com       %%%
+%%% https://www.mathworks.com/matlabcentral/fileexchange/47248-wind-rose %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 fKestrelData = getappdata(handles.guiMain,'fKestrelData');
-h = WindRose(fKestrelData(:,15), fKestrelData(:,1));
-h.Color = [0.94 0.94 0.94];
-h.name = 'Wind Rose';
+windRose = WindRose(fKestrelData(:,15), fKestrelData(:,1));
+windRose.Color = [0.94 0.94 0.94];
+windRose.NumberTitle = 'off';
+windRose.Name = 'Wind Rose';
